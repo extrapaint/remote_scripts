@@ -1,0 +1,61 @@
+#!/bin/bash
+
+# get the IP
+read -p "Enter the target IP address or FQDN: " -i "10.68.214." -e IPADD
+#read -p "Enter the root password: " ROOTPW
+read -p "Enter your username: " -i "tux" -e AGENT
+
+
+
+#</end edit>
+
+
+#if [ -n "$IPADD" ]
+#  then
+#  if ping -c 3 "$IPADD"
+#    then
+    
+#read -p "Which user do you want to connect as? " AGENT
+if [ -n "$AGENT" ]
+  then
+#  read -p  "What is the IP address or FQDN of the target machine? " IPADD
+  if [ -n "$IPADD" ]
+    then
+    if ping -c 2 "$IPADD"
+      then
+        echo
+        echo "Enter password for root to find Xauth file: "
+        AUTH=`ssh -t -t root@"$IPADD" 'ls -t /var/lib/kdm/AuthFiles | tail -n 1'`    
+      if [ -n "$AUTH" ]
+        then
+#        echo "Enter password for $AGENT at the first password prompt, Then enter sudo password at the second prompt: "
+#        VNCCMD="x11vnc -localhost -nolookup -nopw -ncache 10 -display :0 -auth /var/lib/kdm/AuthFiles/$AUTH"
+        ssh -t -L 5900:localhost:5900 root@"$IPADD" "AUTH=ls -t /var/lib/kdm/AuthFiles | tail -n 1; x11vnc -localhost -nolookup -nopw -ncache 10 -display :0 -auth /var/lib/kdm/AuthFiles/$AUTH"
+#        vncviewer -encodings "tight copyrect hextile" localhost:0
+      else
+        echo
+        echo "Unable to find XAuth file. Alternatively, you may ssh into the machine, "
+        echo "and search /var/lib/kdm/AuthFiles. Then, you can paste the location into"
+        echo "the command:"
+        echo
+        echo "ssh -t -L 5900:localhost:5900 $AGENT\@$IPADD \"su -c 'x11vnc -localhost -nolookup -nopw -ncache 10 -display :0 -auth /var/lib/kdm/AuthFiles/[auth file]'"\"
+        echo
+      fi
+    else
+      echo
+      echo "Unable to ping $IPADD. Please verify connectivity and try again."
+      echo "Hint: machine must be connected to the network OR VPN."
+      echo
+    fi
+    else
+      echo
+      echo "Invalid IP address or hostname. Please supply an IPv4 dotted decimal"
+      echo "address or Fully Qualified Domain Name of the target machine."
+      echo
+    fi
+    else
+      echo
+      echo "Please supply a username, tux or agent, for example."
+      echo
+  fi
+#fi
